@@ -36,7 +36,7 @@ def get_color_by_click(n_total_clicks: int) -> str:
 # Giao diện
 # ---------------------------
 st.title("Click Counter App (có cột toàn cục)")
-st.caption("Mỗi 10 click đổi màu. Có chế độ Nhảy lên / Nhảy xuống. Cột 19 = toàn cục.")
+st.caption("Mỗi 10 click đổi màu. Cột 19 = toàn cục, mỗi màu chỉ xuất hiện 1 lần.")
 
 # Hiển thị chế độ hiện tại
 mode_text = "Nhảy lên (màu mới thêm trên cùng)" if st.session_state.chen_len_tren else "Nhảy xuống (màu mới chen xuống dưới)"
