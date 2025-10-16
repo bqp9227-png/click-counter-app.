@@ -13,7 +13,7 @@ if "tong_click" not in st.session_state:
 if "chen_len_tren" not in st.session_state:
     st.session_state.chen_len_tren = False  # False: nhảy xuống, True: nhảy lên
 if "mau_toan_cuc" not in st.session_state:
-    st.session_state.mau_toan_cuc = []  # lưu danh sách màu đã xuất hiện (mỗi màu 1 lần)
+    st.session_state.mau_toan_cuc = []  # lưu toàn bộ lịch sử click toàn cục
 
 # ---------------------------
 # Cấu hình màu: đổi mỗi 10 click
@@ -36,7 +36,7 @@ def get_color_by_click(n_total_clicks: int) -> str:
 # Giao diện
 # ---------------------------
 st.title("Click Counter App (có cột toàn cục)")
-st.caption("Mỗi 10 click đổi màu. Cột 19 = toàn cục, mỗi màu chỉ xuất hiện 1 lần.")
+st.caption("Mỗi 10 click đổi màu. Cột 19 = toàn bộ lịch sử click.")
 
 # Hiển thị chế độ hiện tại
 mode_text = "Nhảy lên (màu mới thêm trên cùng)" if st.session_state.chen_len_tren else "Nhảy xuống (màu mới chen xuống dưới)"
@@ -60,12 +60,11 @@ for i, val in enumerate(range(3, 19)):
         else:
             st.session_state.lich_su_mau[val].insert(0, color)
 
-        # cập nhật cho cột toàn cục (chỉ thêm khi đổi màu)
-        if not st.session_state.mau_toan_cuc or st.session_state.mau_toan_cuc[-1] != color:
-            if st.session_state.chen_len_tren:
-                st.session_state.mau_toan_cuc.append(color)
-            else:
-                st.session_state.mau_toan_cuc.insert(0, color)
+        # cập nhật cho cột toàn cục (mỗi click đều thêm)
+        if st.session_state.chen_len_tren:
+            st.session_state.mau_toan_cuc.append(color)
+        else:
+            st.session_state.mau_toan_cuc.insert(0, color)
 
         st.toast(f"Click {val} → Tổng: {st.session_state.tong_click}")
 
@@ -102,7 +101,7 @@ with st.expander("Thống kê lượt click"):
             v = len(st.session_state.lich_su_mau[k])
             if v > 0:
                 st.write(f"- **Nút {k}:** {v} lần")
-        st.write(f"**Cột toàn cục (19):** {len(st.session_state.mau_toan_cuc)} màu đã xuất hiện")
+        st.write(f"**Cột toàn cục (19):** {len(st.session_state.mau_toan_cuc)} click được ghi lại")
 
 # ---------------------------
 # Reset
