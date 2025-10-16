@@ -7,6 +7,8 @@ import matplotlib.colors as mcolors
 if "lich_su_mau" not in st.session_state:
     st.session_state.lich_su_mau = {i: [] for i in range(3, 19)}
     st.session_state.tong_click = 0
+if "chen_len_tren" not in st.session_state:
+    st.session_state.chen_len_tren = False  # mặc định nhảy xuống
 
 # Danh sách màu cơ bản ban đầu
 base_colors = [
@@ -25,7 +27,15 @@ def get_color_by_click(n):
         cmap = cm.get_cmap("tab20", 500)  # sinh 500 màu khác nhau
         return mcolors.to_hex(cmap(index))
 
-st.title("Ứng dụng đếm click nhiều màu (mỗi 10 click đổi màu, không lặp lại)")
+st.title("Ứng dụng đếm click nhiều màu (ngưỡng 10 click, có chế độ Nhảy lên / Nhảy xuống)")
+
+# Nút chuyển chế độ
+if st.button("Chuyển chế độ Nhảy lên / Nhảy xuống"):
+    st.session_state.chen_len_tren = not st.session_state.chen_len_tren
+    if st.session_state.chen_len_tren:
+        st.info("Đang ở chế độ: Nhảy lên (màu mới thêm lên trên)")
+    else:
+        st.info("Đang ở chế độ: Nhảy xuống (màu mới chen xuống dưới)")
 
 # Tạo các nút từ 3 đến 18
 cols = st.columns(4)
@@ -33,7 +43,12 @@ for i, val in enumerate(range(3, 19)):
     if cols[i % 4].button(str(val), key=f"btn_{val}"):
         st.session_state.tong_click += 1
         color = get_color_by_click(st.session_state.tong_click)
-        st.session_state.lich_su_mau[val].append(color)
+        if st.session_state.chen_len_tren:
+            # Nhảy lên trên
+            st.session_state.lich_su_mau[val].append(color)
+        else:
+            # Nhảy xuống dưới
+            st.session_state.lich_su_mau[val].insert(0, color)
 
 # Vẽ stacked bar chart
 fig, ax = plt.subplots(figsize=(8, 4))
@@ -74,4 +89,5 @@ with st.expander("Lịch sử click (20 lần gần nhất)"):
 if st.button("Reset dữ liệu", type="primary"):
     st.session_state.lich_su_mau = {i: [] for i in range(3, 19)}
     st.session_state.tong_click = 0
+    st.session_state.chen_len_tren = False
     st.success("Đã reset dữ liệu.")
