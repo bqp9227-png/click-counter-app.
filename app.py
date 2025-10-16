@@ -15,7 +15,7 @@ if "chen_len_tren" not in st.session_state:
 if "mau_toan_cuc" not in st.session_state:
     st.session_state.mau_toan_cuc = []  # lưu màu cho cột 19
 if "nguong_mau" not in st.session_state:
-    st.session_state.nguong_mau = 0  # ngưỡng màu hiện tại
+    st.session_state.nguong_mau = -1  # khởi tạo -1 để click đầu tiên thêm màu
 
 # ---------------------------
 # Cấu hình màu: đổi mỗi 10 click
@@ -37,7 +37,7 @@ def get_color_by_click(n_total_clicks: int) -> str:
 # ---------------------------
 # Giao diện
 # ---------------------------
-st.title("Click Counter App (cột 19 đổi màu ngay khi đổi)")
+st.title("Click Counter App (cột 19 dùng chia thực /)")
 st.caption("Cột 3–18: mỗi click đều thêm màu. Cột 19: thêm màu ngay khi màu đổi (mỗi 10 click).")
 
 # Hiển thị chế độ hiện tại
@@ -63,9 +63,9 @@ for i, val in enumerate(range(3, 19)):
             st.session_state.lich_su_mau[val].insert(0, color)
 
         # kiểm tra ngưỡng màu bằng chia thực
-        muc_mau = int(st.session_state.tong_click / 10)
-        if muc_mau > st.session_state.nguong_mau:
-            st.session_state.nguong_mau = muc_mau
+        muc = st.session_state.tong_click / 10
+        if int(muc) > st.session_state.nguong_mau:
+            st.session_state.nguong_mau = int(muc)
             if st.session_state.chen_len_tren:
                 st.session_state.mau_toan_cuc.append(color)
             else:
@@ -116,5 +116,5 @@ if st.button("Reset phiên", type="primary"):
     st.session_state.tong_click = 0
     st.session_state.chen_len_tren = False
     st.session_state.mau_toan_cuc = []
-    st.session_state.nguong_mau = 0
+    st.session_state.nguong_mau = -1
     st.success("Đã reset phiên (không lưu).")
