@@ -14,6 +14,8 @@ if "chen_len_tren" not in st.session_state:
     st.session_state.chen_len_tren = False  # False: nhảy xuống, True: nhảy lên
 if "mau_toan_cuc" not in st.session_state:
     st.session_state.mau_toan_cuc = []  # lưu toàn bộ lịch sử click toàn cục
+if "n" not in st.session_state:
+    st.session_state.n = 0  # ngưỡng cho cột 19
 
 # ---------------------------
 # Cấu hình màu: đổi mỗi 10 click
@@ -35,8 +37,8 @@ def get_color_by_click(n_total_clicks: int) -> str:
 # ---------------------------
 # Giao diện
 # ---------------------------
-st.title("Click Counter App (có cột toàn cục)")
-st.caption("Mỗi 10 click đổi màu. Cột 19 = toàn bộ lịch sử click.")
+st.title("Click Counter App (cột 19 theo ngưỡng chia 10)")
+st.caption("Cột 3–18: mỗi click đều thêm màu. Cột 19: chỉ thêm màu khi số click//10 > n.")
 
 # Hiển thị chế độ hiện tại
 mode_text = "Nhảy lên (màu mới thêm trên cùng)" if st.session_state.chen_len_tren else "Nhảy xuống (màu mới chen xuống dưới)"
@@ -54,17 +56,20 @@ for i, val in enumerate(range(3, 19)):
         st.session_state.tong_click += 1
         color = get_color_by_click(st.session_state.tong_click)
 
-        # cập nhật cho nút riêng
+        # luôn thêm màu cho cột riêng (3–18)
         if st.session_state.chen_len_tren:
             st.session_state.lich_su_mau[val].append(color)
         else:
             st.session_state.lich_su_mau[val].insert(0, color)
 
-        # cập nhật cho cột toàn cục (mỗi click đều thêm)
-        if st.session_state.chen_len_tren:
-            st.session_state.mau_toan_cuc.append(color)
-        else:
-            st.session_state.mau_toan_cuc.insert(0, color)
+        # chỉ thêm màu cho cột 19 khi vượt ngưỡng
+        muc = st.session_state.tong_click // 10
+        if muc > st.session_state.n:
+            st.session_state.n += 1
+            if st.session_state.chen_len_tren:
+                st.session_state.mau_toan_cuc.append(color)
+            else:
+                st.session_state.mau_toan_cuc.insert(0, color)
 
         st.toast(f"Click {val} → Tổng: {st.session_state.tong_click}")
 
@@ -101,7 +106,7 @@ with st.expander("Thống kê lượt click"):
             v = len(st.session_state.lich_su_mau[k])
             if v > 0:
                 st.write(f"- **Nút {k}:** {v} lần")
-        st.write(f"**Cột toàn cục (19):** {len(st.session_state.mau_toan_cuc)} click được ghi lại")
+        st.write(f"**Cột toàn cục (19):** {len(st.session_state.mau_toan_cuc)} màu được ghi lại")
 
 # ---------------------------
 # Reset
@@ -111,4 +116,5 @@ if st.button("Reset phiên", type="primary"):
     st.session_state.tong_click = 0
     st.session_state.chen_len_tren = False
     st.session_state.mau_toan_cuc = []
+    st.session_state.n = 0
     st.success("Đã reset phiên (không lưu).")
