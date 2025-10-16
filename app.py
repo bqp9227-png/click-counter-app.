@@ -1,76 +1,72 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 
-if "counts" not in st.session_state:
-    st.session_state.counts = {i: 0 for i in range(3, 19)}
+# Khởi tạo session state
+if "lich_su_mau" not in st.session_state:
+    st.session_state.lich_su_mau = {i: [] for i in range(3, 19)}
     st.session_state.tong_click = 0
-    st.session_state.lich_su = []
 
-def get_color(n):
-    if 1 <= n <= 10:
-        return "skyblue"
-    elif 11 <= n <= 20:
-        return "orange"
-    elif 21 <= n <= 30:
-        return "green"
-    elif 31 <= n <= 40:
+# Hàm chọn màu theo số thứ tự click toàn cục
+def get_color_by_click(n):
+    if n <= 2:
         return "red"
+    elif n <= 10:
+        return "orange"
+    elif n <= 20:
+        return "green"
+    elif n <= 30:
+        return "blue"
     else:
         return "purple"
 
-st.title("Ứng dụng đếm click và biểu đồ (Streamlit)")
+st.title("Ứng dụng đếm click nhiều màu theo từng lượt")
 
+# Tạo các nút từ 3 đến 18
 cols = st.columns(4)
 for i, val in enumerate(range(3, 19)):
     if cols[i % 4].button(str(val), key=f"btn_{val}"):
-        st.session_state.counts[val] += 1
         st.session_state.tong_click += 1
-        st.session_state.lich_su.append(val)
+        color = get_color_by_click(st.session_state.tong_click)
+        st.session_state.lich_su_mau[val].append(color)
 
-st.subheader(f"Tổng số click: {st.session_state.tong_click}")
-
+# Vẽ stacked bar chart
 fig, ax = plt.subplots(figsize=(8, 4))
-x = list(st.session_state.counts.keys())
-y = list(st.session_state.counts.values())
-color = get_color(st.session_state.tong_click)
-bars = ax.bar(x, y, color=color, alpha=0.8, edgecolor="black")
+for i, val in enumerate(range(3, 19)):
+    bottom = 0
+    for color in st.session_state.lich_su_mau[val]:
+        ax.bar(val, 1, bottom=bottom, color=color, edgecolor="black")
+        bottom += 1
 
-for bar, v in zip(bars, y):
-    if v > 0:
-        ax.text(bar.get_x() + bar.get_width()/2., bar.get_height(), f"{v}", ha="center", va="bottom")
-
-ax.set_title(f"Biểu đồ số lần click - Tổng: {st.session_state.tong_click}")
-ax.set_xlabel("Giá trị nút")
+ax.set_title(f"Tổng số click: {st.session_state.tong_click}")
+ax.set_xlabel("Nút")
 ax.set_ylabel("Số lần click")
-ax.grid(True, alpha=0.3)
-
 st.pyplot(fig)
 
+# Hiển thị thống kê chi tiết
 with st.expander("Thống kê chi tiết"):
     if st.session_state.tong_click == 0:
         st.info("Chưa có dữ liệu.")
     else:
-        counts = st.session_state.counts
-        nut_nhieu_nhat = max(counts.items(), key=lambda x: x[1])
-        nut_it_nhat = next((item for item in sorted(counts.items(), key=lambda x: x[1]) if item[1] > 0), ("Không có", 0))
-
-        st.write(f"- Nút được click nhiều nhất: {nut_nhieu_nhat[0]} ({nut_nhieu_nhat[1]} lần)")
-        st.write(f"- Nút được click ít nhất: {nut_it_nhat[0]} ({nut_it_nhat[1]} lần)")
-        st.write("Chi tiết từng nút:")
-        for k in sorted(counts.keys()):
-            v = counts[k]
+        for k in sorted(st.session_state.lich_su_mau.keys()):
+            v = len(st.session_state.lich_su_mau[k])
             if v > 0:
-                st.write(f"Nút {k}: {v} lần ({(v / st.session_state.tong_click) * 100:.1f}%)")
+                st.write(f"Nút {k}: {v} lần")
 
+# Hiển thị lịch sử click
 with st.expander("Lịch sử click (20 lần gần nhất)"):
-    lich_su = st.session_state.lich_su
+    lich_su = []
+    for nut, colors in st.session_state.lich_su_mau.items():
+        for c in colors:
+            lich_su.append((nut, c))
     if not lich_su:
         st.info("Chưa có lịch sử.")
     else:
-        st.write(" → ".join(map(str, lich_su[-20:])))
+        # chỉ lấy 20 lần gần nhất
+        lich_su_text = " → ".join([f"{nut}({mau})" for nut, mau in lich_su[-20:]])
+        st.write(lich_su_text)
 
+# Nút reset
 if st.button("Reset dữ liệu", type="primary"):
-    st.session_state.counts = {i: 0 for i in range(3, 19)}
+    st.session_state.lich_su_mau = {i: [] for i in range(3, 19)}
     st.session_state.tong_click = 0
-    st.session_state.lich_su = []
     st.success("Đã reset dữ liệu.")
