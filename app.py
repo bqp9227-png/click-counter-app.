@@ -6,20 +6,14 @@ if "lich_su_mau" not in st.session_state:
     st.session_state.lich_su_mau = {i: [] for i in range(3, 19)}
     st.session_state.tong_click = 0
 
-# Hàm chọn màu theo số thứ tự click toàn cục
-def get_color_by_click(n):
-    if n <= 2:
-        return "red"
-    elif n <= 10:
-        return "orange"
-    elif n <= 20:
-        return "green"
-    elif n <= 30:
-        return "blue"
-    else:
-        return "purple"
+# Hàm chọn màu theo ngưỡng 10 click
+colors = ["red", "orange", "green", "blue", "purple"]
 
-st.title("Ứng dụng đếm click nhiều màu theo từng lượt")
+def get_color_by_click(n):
+    index = (n - 1) // 10   # mỗi 10 click đổi màu
+    return colors[index % len(colors)]
+
+st.title("Ứng dụng đếm click nhiều màu (ngưỡng 10 click)")
 
 # Tạo các nút từ 3 đến 18
 cols = st.columns(4)
@@ -55,13 +49,12 @@ with st.expander("Thống kê chi tiết"):
 # Hiển thị lịch sử click
 with st.expander("Lịch sử click (20 lần gần nhất)"):
     lich_su = []
-    for nut, colors in st.session_state.lich_su_mau.items():
-        for c in colors:
+    for nut, colors_list in st.session_state.lich_su_mau.items():
+        for c in colors_list:
             lich_su.append((nut, c))
     if not lich_su:
         st.info("Chưa có lịch sử.")
     else:
-        # chỉ lấy 20 lần gần nhất
         lich_su_text = " → ".join([f"{nut}({mau})" for nut, mau in lich_su[-20:]])
         st.write(lich_su_text)
 
