@@ -1,19 +1,31 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
 
 # Khởi tạo session state
 if "lich_su_mau" not in st.session_state:
     st.session_state.lich_su_mau = {i: [] for i in range(3, 19)}
     st.session_state.tong_click = 0
 
-# Hàm chọn màu theo ngưỡng 10 click
-colors = ["red", "orange", "green", "blue", "purple"]
+# Danh sách màu cơ bản ban đầu
+base_colors = [
+    "red", "orange", "green", "blue", "purple",
+    "yellow", "pink", "brown", "gray", "cyan",
+    "magenta", "lime", "teal", "navy", "gold",
+    "violet", "indigo", "salmon", "khaki", "turquoise"
+]
 
 def get_color_by_click(n):
     index = (n - 1) // 10   # mỗi 10 click đổi màu
-    return colors[index % len(colors)]
+    if index < len(base_colors):
+        return base_colors[index]
+    else:
+        # Nếu hết màu trong base_colors, sinh thêm từ colormap
+        cmap = cm.get_cmap("tab20", 500)  # sinh 500 màu khác nhau
+        return mcolors.to_hex(cmap(index))
 
-st.title("Ứng dụng đếm click nhiều màu (ngưỡng 10 click)")
+st.title("Ứng dụng đếm click nhiều màu (mỗi 10 click đổi màu, không lặp lại)")
 
 # Tạo các nút từ 3 đến 18
 cols = st.columns(4)
@@ -37,7 +49,7 @@ ax.set_ylabel("Số lần click")
 st.pyplot(fig)
 
 # Hiển thị thống kê chi tiết
-with st.expander("Thống kê chi tiết"):
+with st.expander("Thống kê lượt click"):
     if st.session_state.tong_click == 0:
         st.info("Chưa có dữ liệu.")
     else:
