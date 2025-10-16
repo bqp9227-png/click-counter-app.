@@ -74,7 +74,6 @@ st.markdown(f"**Chế độ hiện tại:** {mode_text}")
 if st.button("Chuyển chế độ Nhảy lên / Nhảy xuống"):
     st.session_state.chen_len_tren = not st.session_state.chen_len_tren
     save_state()
-    st.success(f"Đã chuyển chế độ → { 'Nhảy lên' if st.session_state.chen_len_tren else 'Nhảy xuống' }")
 
 cols = st.columns(4)
 for i, val in enumerate(range(3, 19)):
@@ -102,25 +101,6 @@ ax.set_xlabel("Nút")
 ax.set_ylabel("Số lần click")
 ax.set_xticks(list(range(3, 19)))
 st.pyplot(fig)
-
-# ---------------------------
-# Thống kê & lịch sử
-# ---------------------------
-with st.expander("Thống kê lượt click"):
-    for k in range(3, 19):
-        v = len(st.session_state.lich_su_mau[k])
-        if v > 0:
-            st.write(f"Nút {k}: {v} lần")
-
-with st.expander("Lịch sử click (20 lần gần nhất)"):
-    lich_su = []
-    for nut, colors_list in st.session_state.lich_su_mau.items():
-        for c in colors_list:
-            lich_su.append((nut, c))
-    if not lich_su:
-        st.info("Chưa có lịch sử.")
-    else:
-        st.write(" → ".join([f"{nut}({mau})" for nut, mau in lich_su[-20:]]))
 
 # ---------------------------
 # Reset
