@@ -12,6 +12,8 @@ if "tong_click" not in st.session_state:
     st.session_state.tong_click = 0
 if "chen_len_tren" not in st.session_state:
     st.session_state.chen_len_tren = False  # False: nhảy xuống, True: nhảy lên
+if "mau_toan_cuc" not in st.session_state:
+    st.session_state.mau_toan_cuc = []  # lưu danh sách màu đã xuất hiện (mỗi màu 1 lần)
 
 # ---------------------------
 # Cấu hình màu: đổi mỗi 10 click
@@ -27,15 +29,14 @@ def get_color_by_click(n_total_clicks: int) -> str:
     index = (n_total_clicks - 1) // 10
     if index < len(BASE_COLORS):
         return BASE_COLORS[index]
-    # Nếu vượt quá BASE_COLORS, sinh thêm từ colormap
     cmap = cm.get_cmap("tab20", 1000)
     return mcolors.to_hex(cmap(index % 1000))
 
 # ---------------------------
 # Giao diện
 # ---------------------------
-st.title("Click Counter App")
-st.caption("Mỗi 10 click đổi màu. Có chế độ Nhảy lên / Nhảy xuống. Không lưu file.")
+st.title("Click Counter App (có cột toàn cục)")
+st.caption("Mỗi 10 click đổi màu. Có chế độ Nhảy lên / Nhảy xuống. Cột 19 = toàn cục.")
 
 # Hiển thị chế độ hiện tại
 mode_text = "Nhảy lên (màu mới thêm trên cùng)" if st.session_state.chen_len_tren else "Nhảy xuống (màu mới chen xuống dưới)"
@@ -52,26 +53,42 @@ for i, val in enumerate(range(3, 19)):
     if cols[i % 4].button(str(val), key=f"btn_{val}"):
         st.session_state.tong_click += 1
         color = get_color_by_click(st.session_state.tong_click)
+
+        # cập nhật cho nút riêng
         if st.session_state.chen_len_tren:
             st.session_state.lich_su_mau[val].append(color)
         else:
             st.session_state.lich_su_mau[val].insert(0, color)
+
+        # cập nhật cho cột toàn cục (chỉ thêm khi đổi màu)
+        if not st.session_state.mau_toan_cuc or st.session_state.mau_toan_cuc[-1] != color:
+            if st.session_state.chen_len_tren:
+                st.session_state.mau_toan_cuc.append(color)
+            else:
+                st.session_state.mau_toan_cuc.insert(0, color)
+
         st.toast(f"Click {val} → Tổng: {st.session_state.tong_click}")
 
 # ---------------------------
 # Vẽ biểu đồ stacked bar
 # ---------------------------
-fig, ax = plt.subplots(figsize=(9, 4.8))
+fig, ax = plt.subplots(figsize=(10, 4.8))
 for val in range(3, 19):
     bottom = 0
     for color in st.session_state.lich_su_mau[val]:
         ax.bar(val, 1, bottom=bottom, color=color, edgecolor="black")
         bottom += 1
 
+# vẽ thêm cột toàn cục ở vị trí 19
+bottom = 0
+for color in st.session_state.mau_toan_cuc:
+    ax.bar(19, 1, bottom=bottom, color=color, edgecolor="black")
+    bottom += 1
+
 ax.set_title(f"Tổng số click: {st.session_state.tong_click}")
-ax.set_xlabel("Nút")
+ax.set_xlabel("Nút (19 = toàn cục)")
 ax.set_ylabel("Số lần click")
-ax.set_xticks(list(range(3, 19)))
+ax.set_xticks(list(range(3, 20)))
 st.pyplot(fig)
 
 # ---------------------------
@@ -85,6 +102,7 @@ with st.expander("Thống kê lượt click"):
             v = len(st.session_state.lich_su_mau[k])
             if v > 0:
                 st.write(f"- **Nút {k}:** {v} lần")
+        st.write(f"**Cột toàn cục (19):** {len(st.session_state.mau_toan_cuc)} màu đã xuất hiện")
 
 # ---------------------------
 # Reset
@@ -93,4 +111,5 @@ if st.button("Reset phiên", type="primary"):
     st.session_state.lich_su_mau = {i: [] for i in range(3, 19)}
     st.session_state.tong_click = 0
     st.session_state.chen_len_tren = False
+    st.session_state.mau_toan_cuc = []
     st.success("Đã reset phiên (không lưu).")
